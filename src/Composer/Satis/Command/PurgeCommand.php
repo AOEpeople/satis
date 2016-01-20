@@ -73,14 +73,15 @@ class PurgeCommand extends Command
             return 1;
         }
 
-        foreach ($includes as $include => $mtime) {
+        foreach ($includes as $include => $mTime) {
 
-            if ($this->isMaxAgeReached($mtime)) {
-                $output->writeln('<info>skipping :: ' . $include . ' from ' . $mtime . '</info>');
-                continue;
+            $mTimeDate = new \DateTime();
+            $mTimeDate->setTimestamp($mTime);
+            if ($this->isMaxAgeReached($mTimeDate)) {
+                break;
             }
 
-            $output->writeln('<info>scanning :: ' . $include . ' from ' . $mtime . '</info>');
+            $output->writeln('<info>scanning :: ' . $include . ' from ' . $mTimeDate->format(DATE_RFC822) . '</info>');
 
             $json = json_decode(file_get_contents($include), true);
             foreach ($json['packages'] as $packageName => $versions) {
@@ -116,12 +117,12 @@ class PurgeCommand extends Command
     /**
      * Checks if the given timestamp exceed the configured max age.
      *
-     * @param integer $time
+     * @param \DateTime $time
      * @return boolean
      */
-    private function isMaxAgeReached($time)
+    private function isMaxAgeReached(\DateTime $time)
     {
-        if ($time <= $this->maxAge->getTimestamp()) {
+        if ($time->getTimestamp() <= $this->maxAge->getTimestamp()) {
             return true;
         }
         return false;
@@ -141,7 +142,7 @@ class PurgeCommand extends Command
             return array();
         }
         $includes = array_combine($includes, array_map("filemtime", $includes));
-        asort($includes);
+        arsort($includes);
         return $includes;
     }
 
