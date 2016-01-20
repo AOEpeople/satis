@@ -67,7 +67,12 @@ class PurgeCommand extends Command
             return 1;
         }
 
-        $needed = array();
+        $archives = scandir($this->outputDir . "/" . $this->config['archive']['directory'], 1);
+        if (empty($archives)) {
+            $output->writeln('<error>No archived files</error>');
+            return 1;
+        }
+
         foreach ($includes as $include => $mtime) {
 
             if ($this->isMaxAgeReached($mtime)) {
@@ -87,24 +92,19 @@ class PurgeCommand extends Command
                         );
                         continue;
                     }
-                    $needed[] = basename($packageDefinition['dist']['url']);
+                    $needed = basename($packageDefinition['dist']['url']);
+                    if (($key = array_search($needed, $archives)) !== false) {
+                        unset($archives[$key]);
+                    }
                 }
             }
         }
 
-        $archives = scandir($this->outputDir . "/" . $this->config['archive']['directory'], 1);
-        if (empty($archives)) {
-            $output->writeln('<error>No archived files</error>');
-            return 1;
-        }
-
         foreach ($archives as $archive) {
-            if (false === in_array($archive, $needed)) {
-                $absPath = $this->outputDir . '/' . $this->config['archive']['directory'] . '/' . $archive;
-                if (is_file($absPath)) {
-                    $output->writeln("<info>" . $archive . ' :: deleted</info>');
-                    //unlink($absPath);
-                }
+            $absPath = $this->outputDir . '/' . $this->config['archive']['directory'] . '/' . $archive;
+            if (is_file($absPath)) {
+                $output->writeln("<info>" . $archive . ' :: deleted</info>');
+                unlink($absPath);
             }
         }
 
