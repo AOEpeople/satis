@@ -71,7 +71,7 @@ class PurgeCommand extends Command
         foreach ($includes as $include => $mtime) {
 
             if ($this->isMaxAgeReached($mtime)) {
-                $output->writeln('<warning>skipping :: ' . $include . ' from ' . $mtime . '</warning>');
+                $output->writeln('<info>skipping :: ' . $include . ' from ' . $mtime . '</info>');
                 continue;
             }
 
@@ -80,6 +80,13 @@ class PurgeCommand extends Command
             $json = json_decode(file_get_contents($include), true);
             foreach ($json['packages'] as $packageName => $versions) {
                 foreach ($versions as $packageDefinition) {
+                    if (false === isset($packageDefinition['dist'])) {
+                        $output->writeln(
+                            "<warning>{$packageDefinition['name']} with version " .
+                            "{$packageDefinition['version']} has no 'dist'</warning>"
+                        );
+                        continue;
+                    }
                     $needed[] = basename($packageDefinition['dist']['url']);
                 }
             }
@@ -96,7 +103,7 @@ class PurgeCommand extends Command
                 $absPath = $this->outputDir . '/' . $this->config['archive']['directory'] . '/' . $archive;
                 if (is_file($absPath)) {
                     $output->writeln("<info>" . $archive . ' :: deleted</info>');
-                    unlink($absPath);
+                    //unlink($absPath);
                 }
             }
         }
