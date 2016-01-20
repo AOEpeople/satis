@@ -1,0 +1,10 @@
+The <info>purge</info> command deletes useless archive files, depending
+on given json file (satis.json is used by default), the json files in
+the include directory of the given output-dir and given max-age.
+
+By default max-age is set to '-1 week'. This means all archives referenced
+in include files older than one week will be deleted. The format of max-age
+equals to strtotime php function: http://www.php.net/strtotime
+
+In your satis.json (or other name you give), you must define "archive"
+argument.
